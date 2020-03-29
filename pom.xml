@@ -7,7 +7,7 @@
     <groupId>com.xiaosong</groupId>
     <artifactId>xiaosongi_winds</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>xiaosong Maven Webapp</name>
     <url>http://maven.apache.org</url>
 
@@ -261,6 +261,12 @@
             <artifactId>Qrcode</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
     </dependencies>
     <build>
         <finalName>xiaosong</finalName>
@@ -288,76 +294,76 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.yunshouhu.apkprotect.MainHelper</mainClass>
+                                    <mainClass>com.xiaosong.MainConfig</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
+            <!-- ProGuard混淆插件-->
             <plugin>
                 <groupId>com.github.wvengen</groupId>
                 <artifactId>proguard-maven-plugin</artifactId>
                 <version>2.0.11</version>
                 <executions>
                     <execution>
+                        <!-- 混淆时刻，这里是打包的时候混淆-->
                         <phase>package</phase>
                         <goals>
+                            <!-- 使用插件的什么功能，当然是混淆-->
                             <goal>proguard</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-
+                    <!-- 是否将生成的PG文件安装部署-->
                     <attach>true</attach>
-                    <attachArtifactClassifier>proguard</attachArtifactClassifier>
-                    <!-- attach 的作用是在 install 与 deploy 时将生成的 pg 文件也安装与部署 -->
-                    <options> <!-- 详细配置方式参考 ProGuard 官方文档 -->
-                        <!--<option>-dontobfuscate</option>-->
-                        <option>-ignorewarnings</option> <!--忽略所有告警-->
-                        <option>-dontshrink</option>   <!--不做 shrink -->
-                        <option>-dontoptimize</option> <!--不做 optimize -->
+                    <!-- 是否混淆-->
+                    <obfuscate>true</obfuscate>
+                    <!-- 指定生成文件分类 -->
+                    <attachArtifactClassifier>pg</attachArtifactClassifier>
+                    <options>
+                        <!-- JDK目标版本1.8-->
+                        <option>-target 1.8</option>
+                        <!-- 不做收缩（删除注释、未被引用代码）-->
+                        <option>-dontshrink</option>
+                        <!-- 不做优化（变更代码实现逻辑）-->
+                        <option>-dontoptimize</option>
+                        <!-- 不路过非公用类文件及成员-->
                         <option>-dontskipnonpubliclibraryclasses</option>
                         <option>-dontskipnonpubliclibraryclassmembers</option>
+                        <!--不用大小写混合类名机制-->
+                        <option>-dontusemixedcaseclassnames</option>
 
-                        <!--不要重构包名
-                      <option>-repackageclasses org.noahx.proguard.example.project2.pg</option>
-                      -->
-                        <!--平行包结构（重构包层次），所有混淆的类放在 pg 包下-->
+                        <!-- 优化时允许访问并修改有修饰符的类和类的成员 -->
+                        <option>-allowaccessmodification</option>
+                        <!-- 确定统一的混淆类的成员名称来增加混淆-->
+                        <option>-useuniqueclassmembernames</option>
+                        <!-- 不混淆所有包名-->
+                        <!--<option>-keeppackagenames</option>-->
 
-                        <!--保护程序入口-->
-                        <option>-keep public class com.yunshouhu.apkprotect.MainHelper { public static void main(java.lang.String[]);}</option>
+                        <!-- 需要保持的属性：异常，注解等-->
+                        <option>-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LocalVariable*Table,*Annotation*,Synthetic,EnclosingMethod</option>
+                        <!-- 不混淆所有的set/get方法->
+                        <!-<option>-keepclassmembers public class * {void set*(***);*** get*();}</option>-->
 
-
-                        <!-- 以下为 Keep，哪些内容保持不变，因为有一些内容混淆后（a,b,c）导致反射或按类名字符串相关的操作失效 -->
-
-                        <option>-keep class **.package-info</option>
-                        <!--保持包注解类-->
-
-                        <option>-keepattributes Signature</option>
-                        <!--JAXB NEED，具体原因不明，不加会导致 JAXB 出异常，如果不使用 JAXB 根据需要修改-->
-                        <!-- Jaxb requires generics to be available to perform xml parsing and without this option ProGuard was not retaining that information after obfuscation. That was causing the exception above. -->
-
-                        <option>-keepattributes SourceFile,LineNumberTable,*Annotation*</option>
-                        <!--保持源码名与行号（异常时有明确的栈信息），注解（默认会过滤掉所有注解，会影响框架的注解）-->
-
-                        <option>-keepclassmembers enum org.noahx.proguard.example.project2.** { *;}</option>
-                        <!--保持枚举中的名子，确保枚举 valueOf 可以使用-->
-
-                        <option>-keep class org.noahx.proguard.example.project2.bean.** { *;}</option>
-                        <!--保持 Bean 类，（由于很多框架会对 Bean 中的内容做反射处理，请根据自己的业务调整） -->
-
-                        <option>-keep class org.noahx.proguard.example.project2.Project2 { public void init(); public void
-                            destroy(); }
-                        </option>
-                        <!-- 保持对外的接口性质类对外的类名与方法名不变 -->
+                        <!-- 不混淆包下的所有类名，且类中的方法也不混淆-->
+                        <!--<option>-keep class com.xiaosong.** { *; }</option>-->
 
                     </options>
-                    <outjar>${project.build.finalName}-proguard</outjar>
+                    <!--class 混淆后输出的jar包-->
+                    <outjar>classes-autotest.jar</outjar>
+                    <!-- 添加依赖，这里你可以按你的需要修改，这里测试只需要一个JRE的Runtime包就行了 -->
                     <libs>
                         <lib>${java.home}/lib/rt.jar</lib>
                     </libs>
-
+                    <!-- 对什么东西进行加载，这里仅有classes成功，毕竟你也不可能对配置文件及JSP混淆吧-->
+                    <injar>classes</injar>
+                    <!-- 输出目录-->
+                    <outputDirectory>${project.build.directory}</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,11 +1,14 @@
 package com.xiaosong.common.device;
 
 
+import com.dhnetsdk.date.Constant;
 import com.jfinal.plugin.activerecord.Db;
-import com.xiaosong.constant.ErrorCodeDef;
+import com.sun.jna.Pointer;
+import com.xiaosong.config.MinniSDK;
+import com.xiaosong.config.MinniSDK.*;
 import com.xiaosong.model.*;
 import com.xiaosong.util.Control24DeviceUtil;
-import com.xiaosong.util.RetUtil;
+import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -13,6 +16,7 @@ import java.util.*;
 
 public class DeviceService {
     public static final DeviceService me = new DeviceService();
+    private static Logger logger = Logger.getLogger(DeviceService.class);
 
     /**
      * 根据设备编号 查询 产品选型
@@ -447,4 +451,52 @@ public class DeviceService {
         return TbDevice.dao.find("select * from tb_device where deviceMode like '%" + deviceMode + "%'");
 
     }
+
+    /**
+     * 旷世设备登录  and 开启接收人脸实时结果
+     */
+    public void login(Map<String, String> map) {
+        MinniSDK minniSDK = MinniSDK.INSTANCE;
+        //设备登录所需参数
+        //登录句柄
+        int handle = minniSDK.BoxSDK_INVALID_DEVICE_HANDLE;
+        BoxSDK_DeviceConfig deviceConfig = new BoxSDK_DeviceConfig();
+        //设备登录 参数
+        deviceConfig.ip= map.get(Constant.deviceIp).getBytes();                //设备登录ip
+        deviceConfig.port = Integer.parseInt(map.get(Constant.devicePort));    //设备登录端口
+        deviceConfig.username =  map.get(Constant.username).getBytes();        //设备登录用户名
+        deviceConfig.password =  map.get(Constant.password).getBytes();        //设备登录密码
+        Pointer configPointer = deviceConfig.getPointer();
+        int isLogin = minniSDK.BoxSDK_login_device(configPointer, 5000, handle);
+        if (isLogin == 0) {
+            logger.error("sync login device(" + map.get(Constant.deviceIp) + "," + Constant.devicePort + ") success, device handle:" + handle);
+            //开启接收人脸实时结果
+            BoxSDK_FaceResultConfig config = new BoxSDK_FaceResultConfig();
+            config.enable = isLogin;                                 // 接收人脸结果
+            config.enable_feature = isLogin;                         // 接收人脸的特征
+            config.enable_capture_image = isLogin;                   // 接收人脸抓拍的抓拍图
+            config.enable_original_image = isLogin;                  // 接收人脸抓拍的全景图
+            config.enable_recog_capture_image = isLogin;             // 接收人脸识别的底库图
+            config.enable_recog_original_image = isLogin;            // 接收人脸识别的底库图
+            config.enable_recog_library_image = isLogin;             // 接收人脸的底库图
+            config.enable_fever_capture_image = isLogin;             // 接收人脸的发烧抓拍图
+            config.enable_fever_original_image = isLogin;            // 接收人脸的发烧全景图
+            config.enable_respirator_capture_image = isLogin;        // 接收人脸的无口罩抓拍图
+            config.enable_respirator_original_image = isLogin;       // 接收人脸的无口罩全景图
+            Pointer pointer = config.getPointer();
+            int isSuccess = minniSDK.BoxSDK_set_face_result_config(handle, pointer, 5000);
+            if(isSuccess==0){
+                logger.info("mock device ( "+handle+" ) set_face_result_config success");
+            }else{
+                logger.error("mock device ( "+handle+" ) set_face_result_config failed, error code "+isSuccess);
+                //退出设备
+//            minniSDK.BoxSDK_logout_device(handle);
+            }
+        } else {
+            logger.error("sync login device ( " + map.get(Constant.deviceIp) + "," + Constant.devicePort + " ) failed, error code:" + isLogin);
+            //销毁sdk
+            minniSDK.BoxSDK_release();
+        }
+    }
+
 }

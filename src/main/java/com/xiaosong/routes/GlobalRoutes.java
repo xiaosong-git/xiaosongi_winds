@@ -3,7 +3,9 @@ package com.xiaosong.routes;
 import com.jfinal.config.Routes;
 import com.xiaosong.common.LoginController;
 import com.xiaosong.common.accessrecord.AccessRecordsController;
-import com.xiaosong.common.attendance.AttendanceController;
+import com.xiaosong.common.campus.group.GroupAdminController;
+import com.xiaosong.common.campus.personnel.PersonnelAdminController;
+import com.xiaosong.common.campus.statement.StatementController;
 import com.xiaosong.common.device.DeviceController;
 import com.xiaosong.common.device.DeviceRelatedController;
 import com.xiaosong.common.floor.FloorController;
@@ -36,8 +38,6 @@ public class GlobalRoutes extends Routes{
 		//该处还可配置route级别的拦截器，对N个含有共同拦截器的控制层实现统一配置，减少代码冗余
 
 		//路由路劲
-		//考勤管理配置
-		this.add("/attendance", AttendanceController.class);
 		//设备配置
 		this.add("/device", DeviceController.class);
 		//设备使用配置
@@ -58,6 +58,12 @@ public class GlobalRoutes extends Routes{
 		this.add("/login", LoginController.class);
 		//内网穿透
 		this.add("/penetrate", PenetrateController.class);
+		//分组管理
+		this.add("/group", GroupAdminController.class);
+		//人员管理
+		this.add("/per", PersonnelAdminController.class);
+		//报表统计
+		this.add("/statement", StatementController.class);
 
 	}
 }

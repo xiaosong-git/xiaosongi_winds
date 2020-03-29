@@ -1,7 +1,10 @@
 package com.xiaosong.common.device;
 
+import com.dhnetsdk.date.Constant;
 import com.jfinal.core.Controller;
-import com.xiaosong.config.InitHCNetSDK;
+import com.sun.jna.Pointer;
+import com.xiaosong.config.MinniSDK;
+import com.xiaosong.config.MinniSDK.*;
 import com.xiaosong.config.SendAccessRecord;
 import com.xiaosong.config.devicesInit;
 import com.xiaosong.constant.ErrorCodeDef;
@@ -148,6 +151,26 @@ public class DeviceController extends Controller {
                                 e.printStackTrace();
 
                             }
+                        }
+                        //旷世设备
+                    }else if(deviceType.equals("KS-250")){
+                        MinniSDK minniSDK = MinniSDK.INSTANCE;
+                        //初始化旷世设备
+                        BoxSDK_Config boxSDK_config = new BoxSDK_Config();
+                        Pointer user_data = boxSDK_config.user_data;
+                        int isInit = minniSDK.BoxSDK_init(user_data);
+                        if(isInit==0){
+                            logger.info("BoxSDK init() success");
+                            //登录设备
+                            Map<String, String> map = new HashMap<String, String>();
+                            map.put(com.dhnetsdk.date.Constant.deviceIp, devices.get(i).getDeviceIp());
+                            map.put(com.dhnetsdk.date.Constant.username, admin);
+                            map.put(com.dhnetsdk.date.Constant.password, password);
+                            map.put(String.valueOf(Constant.devicePort), devicePort);
+                            //登录并开启人脸匹对
+                            srv.login(map);
+                        }else{
+                            logger.error("BoxSDK init() failed, error code："+isInit);
                         }
                     }
                 }

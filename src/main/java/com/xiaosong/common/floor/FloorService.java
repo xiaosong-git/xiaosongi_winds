@@ -2,6 +2,7 @@ package com.xiaosong.common.floor;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.xiaosong.model.TbBuilding;
+import com.xiaosong.model.TbCompanyuser;
 import com.xiaosong.model.TbVisitor;
 
 import java.util.List;
@@ -159,4 +160,11 @@ public class FloorService {
         }
     }
 
+    /**
+     * 删除所有的员工信息
+     */
+    public void deleteAll() {
+        Db.delete("delete from tb_companyuser");
+
+    }
 }

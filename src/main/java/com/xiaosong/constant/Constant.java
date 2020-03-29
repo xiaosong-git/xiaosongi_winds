@@ -13,9 +13,9 @@ public class Constant {
     /**
      * 默认上传临时文件夹 PathKit.getWebRootPath() +"/upload/temp";
      */
-    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/src/main/webapp/img";
+    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/src/main/webapp/file";
     //linux 路徑
-//    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/img/";
+//    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/file/";
 
 
     /**

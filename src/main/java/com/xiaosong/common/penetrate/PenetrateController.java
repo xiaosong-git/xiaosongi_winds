@@ -9,6 +9,9 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
+/**
+ * 内网穿透
+ */
 public class PenetrateController extends Controller {
     private static ServerService srv = ServerService.me;
     private Logger logger = Logger.getLogger(PenetrateController.class);

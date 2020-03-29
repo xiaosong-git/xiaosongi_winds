@@ -165,7 +165,7 @@ public class MainConfig extends JFinalConfig {
         //监控
         //DruidStatViewHandler dvh =  new DruidStatViewHandler("/druid");
         //me.add(dvh);
-        me.add(new WebSocketHandler("^/websocket"));
+//        me.add(new WebSocketHandler("^/websocket"));
     }
 
 
@@ -206,7 +206,7 @@ public class MainConfig extends JFinalConfig {
 //        //jfinal 3.3 启动
 //        JFinal.start("src/main/webapp", 8080, "/");
         //jfinal 4.8 启动
-        UndertowServer.start(MainConfig.class,8080,false);
+        UndertowServer.start(MainConfig.class);
 
     }
 

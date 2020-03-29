@@ -39,8 +39,8 @@ public class Constants {
     public static String AccessRecPath = "E:\\Recored";    //数据记录路径
 
 
-//    public static final String baseURl = "http://47.96.71.163:8082/visitor/";	//生产接口
-    public static final String baseURl = "http://121.36.45.232:8082/service/";	//测试接口
+    public static final String baseURl = "http://121.36.45.232:8082/visitor/";	//生产接口
+//    public static final String baseURl = "http://121.36.45.232:8082/service/";	//测试接口
     public static String newpullStaffUrl = "foreign/newFindOrgCode";		    //新的访客拉取接口
     public static final String page = "1";
     public static final String baseFileURl = "http://47.98.205.206:8081/";
@@ -48,7 +48,7 @@ public class Constants {
     public static String VisitorPath = PathKit.getWebRootPath() + "/img/";     //Linux系统文件存储路径 访客
     public static String newconfirmReceiveUrl = "foreign/newFindOrgCodeConfirm"; //新访客数据确认接收接口
     public static String StaffPath = PathKit.getWebRootPath() + "/img/";         //Linux系统文件存储路径 员工
-    public static String pullOrgCompanyUrl = "companyUser/findApplySucOrg";		//新增员工接口
+    public static String pullOrgCompanyUrl = "companyUser/newFindApplyAllSucOrg";		//新增员工接口
     public static String accessRecordByBatch = "goldccm-imgServer/inAndOut/save";
     public static String shareRoom = "meeting/getFromOrgCode/1/10";		//共享茶室等接口
     public static String confirmShareRoom = "meeting/getFromOrgCodeConfirm";
