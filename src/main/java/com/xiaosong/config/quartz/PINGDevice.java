@@ -7,6 +7,7 @@ import com.xiaosong.common.floor.FloorService;
 import com.xiaosong.config.SendAccessRecord;
 import com.xiaosong.model.TbDevice;
 import com.xiaosong.model.TbPtinfo;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.log4j.Logger;
 import org.quartz.Job;
@@ -58,10 +59,10 @@ public class PINGDevice implements Job {
 //                if(webSocketClient.isClosed()) {
 //                    webSocketClient.reconnect();
 //                }
-                List<TbPtinfo> tbPtinfos = TbPtinfo.dao.find("select * from tb_ptinfo");
-                for (TbPtinfo tbPtinfo : tbPtinfos) {
-                    tbPtinfo.delete();
-                }
+//                List<TbPtinfo> tbPtinfos = TbPtinfo.dao.find("select * from tb_ptinfo");
+//                for (TbPtinfo tbPtinfo : tbPtinfos) {
+//                    tbPtinfo.delete();
+//                }
                 ping();
 
             } catch (IOException e) {
@@ -83,7 +84,7 @@ public class PINGDevice implements Job {
                 logger.error(faceDec.getDeviceId() + "设备IP地址为空");
                 continue;
             }
-            if (!"SWI".equals(faceDec.getDeviceMode())) {
+            if (!"人脸设备".equals(faceDec.getDeviceMode())) {
                 if (osName.contains("Linux")) {
                     command = "ping " + faceDec.getDeviceIp() + " -c 4 ";
                 } else {
@@ -105,15 +106,22 @@ public class PINGDevice implements Job {
 //            if (tbPtinfos == null || tbPtinfos.size() == 0) {
 //                ptinfo.save();
 //            }else {
-                if(ptinfo.getDeviceIP().equals(faceDec.getDeviceIp())){
-                    ptinfo.save();
-                }
+//                if(ptinfo.getDeviceIP().equals(faceDec.getDeviceIp())){
+//                    ptinfo.save();
+//                }
 //            }
 //            ptinfo.save();
-
-//            Db.update("update tb_ptinfo set orgCode = ? , pingStatus = ? , pingavg = ? ,pingloss = ?,telStatus = ? ,freshTime =? ,cpu = ? , memory=? ,longStatus = ? where deviceIP = ?",
-//                    ptinfo.getOrgCode(), ptinfo.getPingStatus(), ptinfo.getPingavg(), ptinfo.getPingloss(), ptinfo.getTelStatus(), ptinfo.getFreshTime(), ptinfo.getCpu(), ptinfo.getMemory(), SendAccessRecord.longStatus, faceDec.getDeviceIp());
-
+            TbPtinfo first = TbPtinfo.dao.findFirst("select * from tb_ptinfo where deviceIP = ?", ptinfo.getDeviceIP());
+            System.out.println("____"+"UPDATE tb_ptinfo SET deviceName='"+ptinfo.getDeviceName()+"', deviceIP='"+ptinfo.getDeviceIP()+"', orgCode='"+ptinfo.getOrgCode()+"', pingStatus='"+ptinfo.getPingStatus()+"', pingavg='"+ptinfo.getPingavg()+"', pingloss='"+ptinfo.getPingloss()+"', \n" +
+                    "telStatus='"+ptinfo.getTelStatus()+"', expt1='null', expt2='null', freshTime='"+ptinfo.getFreshTime()+"', cpu='"+ptinfo.getCpu()+"', memory='"+ptinfo.getMemory()+"', longStatus='"+ptinfo.getLongStatus()+"' \n" +
+                    "WHERE deviceIP='"+ptinfo.getDeviceIP()+"'");
+            if (first==null) {
+                ptinfo.save();
+            } else {
+                Db.update("UPDATE tb_ptinfo SET deviceName='"+ptinfo.getDeviceName()+"', deviceIP='"+ptinfo.getDeviceIP()+"', orgCode='"+ptinfo.getOrgCode()+"', pingStatus='"+ptinfo.getPingStatus()+"', pingavg='"+ptinfo.getPingavg()+"', pingloss='"+ptinfo.getPingloss()+"', \n" +
+                                "telStatus='"+ptinfo.getTelStatus()+"', expt1='null', expt2='null', freshTime='"+ptinfo.getFreshTime()+"', cpu='"+ptinfo.getCpu()+"', memory='"+ptinfo.getMemory()+"', longStatus='"+ptinfo.getLongStatus()+"' \n" +
+                                "WHERE deviceIP='"+ptinfo.getDeviceIP()+"'");
+            }
             ptinfos.add(ptinfo);
 
 
@@ -267,7 +275,7 @@ public class PINGDevice implements Job {
     public TbPtinfo getDeviceInfo(TbPtinfo ptinfo, TbDevice device) throws IOException {
         //设备IP
         if (osName.contains("Linux")) {
-            if (device.getDeviceMode().equals("SWI")) {
+            if (device.getDeviceMode().equals("人脸设备")) {
 
                 ptinfo.setMemory(memoryUsage());
                 logger.info("内存使用率:" + memoryUsage());
@@ -278,7 +286,7 @@ public class PINGDevice implements Job {
                 ptinfo.setCpu("");
             }
         } else {
-            if (device.getDeviceMode().equals("SWI")) {
+            if (device.getDeviceMode().equals("人脸设备")) {
                 TransportMapping transport = null;
                 Snmp snmp = null;
                 CommunityTarget target = null;

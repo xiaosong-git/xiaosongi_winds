@@ -11,8 +11,10 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="xiaosongi" target="1.8" />
       <module name="xiaosongi_winds" target="1.8" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
   </component>
 </project>

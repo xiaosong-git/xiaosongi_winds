@@ -8,13 +8,13 @@ import com.xiaosong.common.campus.personnel.PersonnelAdminController;
 import com.xiaosong.common.campus.statement.StatementController;
 import com.xiaosong.common.device.DeviceController;
 import com.xiaosong.common.device.DeviceRelatedController;
+import com.xiaosong.common.device.FaceQrResultController;
 import com.xiaosong.common.floor.FloorController;
 import com.xiaosong.common.licence.LicenseController;
 import com.xiaosong.common.pass.PassWayController;
 import com.xiaosong.common.penetrate.PenetrateController;
 import com.xiaosong.common.personnel.PersonController;
 import com.xiaosong.common.server.ServerController;
-import com.xiaosong.common.server.ServerService;
 
 /**
  * 所有控制器配置地址以及route级别过滤器
@@ -38,6 +38,9 @@ public class GlobalRoutes extends Routes{
 		//该处还可配置route级别的拦截器，对N个含有共同拦截器的控制层实现统一配置，减少代码冗余
 
 		//路由路劲
+		//海景设备 拉取通行人员, 二维码
+		this.add("/shangweijiserver", FaceQrResultController.class);
+
 		//设备配置
 		this.add("/device", DeviceController.class);
 		//设备使用配置

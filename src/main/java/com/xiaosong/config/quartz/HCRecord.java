@@ -28,7 +28,7 @@ public class HCRecord implements Job{
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         // TODO Auto-generated method stub
         //查找所有运行的人脸设备
-        List<TbDevice> devices = srvDevice.findByDevName("人脸设备", "使用");
+        List<TbDevice> devices = srvDevice.findByDevName("人脸设备", "running");
         for(TbDevice device: devices) {
 
             //型号是DS-2CD8627FWD（网络摄像头）的设备

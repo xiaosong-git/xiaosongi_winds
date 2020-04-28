@@ -20,16 +20,18 @@ import com.jfinal.plugin.redis.RedisPlugin;
 import com.jfinal.server.undertow.UndertowServer;
 import com.jfinal.template.Engine;
 import com.jfinal.template.source.ClassPathSourceFactory;
+import com.xiaosong.common.device.DeviceService;
 import com.xiaosong.common.server.ServerService;
 import com.xiaosong.constant.Constant;
-import com.xiaosong.interceptor.WebSocketHandler;
 import com.xiaosong.interceptor.XiaoSongInterceptor;
+import com.xiaosong.model.TbServerinfo;
 import com.xiaosong.model._MappingKit;
 import com.xiaosong.routes.GlobalRoutes;
 import org.apache.log4j.Logger;
 
 public class MainConfig extends JFinalConfig {
     private ServerService srv = ServerService.me;
+    private DeviceService srvDevice = DeviceService.me;
     private static Logger logger = Logger.getLogger(MainConfig.class);
 
     private static Prop p = loadConfig();
@@ -53,6 +55,7 @@ public class MainConfig extends JFinalConfig {
      */
     @Override
     public void configConstant(Constants me) {
+        me.setEncoding("utf-8"); //
         me.setDevMode(Constant.DEV_MODE);//是否开发模式 上生产是需要改变 与JFInal框架有关
         me.setMaxPostSize(1024 * 1024 * 20);//默认最大上传数据大小
         me.setLogFactory(new Log4jLogFactory());//日志配置
@@ -119,7 +122,7 @@ public class MainConfig extends JFinalConfig {
         String cacheType = PropKit.get("cache.type").trim();
         if ("redis".equals(cacheType)) {
 //            RedisPlugin redisPlugin = new ESRedisPlugin().config();
-            RedisPlugin redisPlugin = new RedisPlugin("xiaosong", "127.0.0.1", 6379/*,"123456"*/);
+            RedisPlugin redisPlugin = new RedisPlugin("xiaosong", "127.0.0.1");
             me.add(redisPlugin);
         }
         //cron4j 定时任务
@@ -165,7 +168,6 @@ public class MainConfig extends JFinalConfig {
         //监控
         //DruidStatViewHandler dvh =  new DruidStatViewHandler("/druid");
         //me.add(dvh);
-//        me.add(new WebSocketHandler("^/websocket"));
     }
 
 
@@ -180,26 +182,43 @@ public class MainConfig extends JFinalConfig {
     //项目启动后操作，常用场景可以加载一些定时任务JOB类可在此处加载启动
     @Override
     public void afterJFinalStart() {
-//        TbServerinfo ser = srv.findSer();
-//        String netappValue = ser.getNetappValue();
-//        String toKen = ser.getToKen();
-//        if (netappValue.equals("true")) {
-//            try {
-//                String s= "nohup ./natapp -authtoken="+toKen+" -log=stdout &";
-//                System.out.println(s);
-//                int i = Runtime.getRuntime().exec(s).waitFor();
-//                    if (i == 1) {
-//                    logger.info("内网穿透开启成功~");
-//                } else {
-//                    logger.error("内网穿透开启失败~");
-//                }
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
+//        //服务自启 开启设备
+//        List<TbDevice> devices = TbDevice.dao.find("select * from tb_device where status = 'running'");
+//        for (TbDevice device : devices) {
+//            if (device.getDeviceType().equals("DS-K5671")) {
+//                //linux 下 加载 海康sdk
+//                InitHCNetSDK.run(device.getDeviceType());
+//                SendAccessRecord accessRecord = new SendAccessRecord();
+//                logger.info("长连接" + device.getDeviceIp());
+//                accessRecord.sendAccessRecord(device.getDeviceIp(), device.getAdmin(), device.getPassword());
+//            } else if (device.getDeviceType().equals("DH-ASI728")) {
+//                //初始化大华设备
+//                devicesInit.initDH();
+//                SendAccessRecord accessRecord = new SendAccessRecord();
+//
+//                logger.info("长连接" + device.getDeviceIp());
+//                Map<String, String> map = new HashMap<String, String>();
+//                map.put(com.dhnetsdk.date.Constant.deviceIp, device.getDeviceIp());
+//                map.put(com.dhnetsdk.date.Constant.username, device.getAdmin());
+//                map.put(com.dhnetsdk.date.Constant.password, device.getPassword());
+//
+//                accessRecord.dhSendAccessRecord(map);
+//            } else if (device.getDeviceType().equals("KS-250")) {
+//
 //            }
 //        }
-
+//        //服务自启  开启内网穿透
+        TbServerinfo ser = srv.findSer();
+        String netappValue = ser.getNetappValue();
+        String toKen = ser.getToKen();
+        if (netappValue.equals("true")) {
+            try {
+                String natapp = "nohup /usr/natapp/natapp -authtoken=" + toKen + " -log=stdout &";
+                Runtime.getRuntime().exec(natapp);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void main(String[] args) {

@@ -16,12 +16,6 @@
         <jdk.version>1.8</jdk.version>
     </properties>
     <dependencies>
-        <!--websocket-->
-        <dependency>
-            <groupId>io.undertow</groupId>
-            <artifactId>undertow-websockets-jsr</artifactId>
-            <version>2.0.28.Final</version>
-        </dependency>
 
         <dependency>
             <groupId>com.jfinal</groupId>
@@ -44,6 +38,7 @@
             <version>2.0</version>
         </dependency>
 
+        <!--==================-->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -54,7 +49,7 @@
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <version>7.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
 
         <!--JFinal的定时任务-->
@@ -248,11 +243,6 @@
         <dependency>
             <groupId>com.jfinal</groupId>
             <artifactId>jfinal</artifactId>
-            <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jfinal</groupId>
-            <artifactId>jfinal</artifactId>
             <version>4.8</version>
         </dependency>
         <!--二维码-->
@@ -266,7 +256,17 @@
             <artifactId>poi</artifactId>
             <version>4.0.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>xiaosong</finalName>
@@ -282,90 +282,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.xiaosong.MainConfig</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-            <!-- ProGuard混淆插件-->
-            <plugin>
-                <groupId>com.github.wvengen</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-                <version>2.0.11</version>
-                <executions>
-                    <execution>
-                        <!-- 混淆时刻，这里是打包的时候混淆-->
-                        <phase>package</phase>
-                        <goals>
-                            <!-- 使用插件的什么功能，当然是混淆-->
-                            <goal>proguard</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- 是否将生成的PG文件安装部署-->
-                    <attach>true</attach>
-                    <!-- 是否混淆-->
-                    <obfuscate>true</obfuscate>
-                    <!-- 指定生成文件分类 -->
-                    <attachArtifactClassifier>pg</attachArtifactClassifier>
-                    <options>
-                        <!-- JDK目标版本1.8-->
-                        <option>-target 1.8</option>
-                        <!-- 不做收缩（删除注释、未被引用代码）-->
-                        <option>-dontshrink</option>
-                        <!-- 不做优化（变更代码实现逻辑）-->
-                        <option>-dontoptimize</option>
-                        <!-- 不路过非公用类文件及成员-->
-                        <option>-dontskipnonpubliclibraryclasses</option>
-                        <option>-dontskipnonpubliclibraryclassmembers</option>
-                        <!--不用大小写混合类名机制-->
-                        <option>-dontusemixedcaseclassnames</option>
-
-                        <!-- 优化时允许访问并修改有修饰符的类和类的成员 -->
-                        <option>-allowaccessmodification</option>
-                        <!-- 确定统一的混淆类的成员名称来增加混淆-->
-                        <option>-useuniqueclassmembernames</option>
-                        <!-- 不混淆所有包名-->
-                        <!--<option>-keeppackagenames</option>-->
-
-                        <!-- 需要保持的属性：异常，注解等-->
-                        <option>-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LocalVariable*Table,*Annotation*,Synthetic,EnclosingMethod</option>
-                        <!-- 不混淆所有的set/get方法->
-                        <!-<option>-keepclassmembers public class * {void set*(***);*** get*();}</option>-->
-
-                        <!-- 不混淆包下的所有类名，且类中的方法也不混淆-->
-                        <!--<option>-keep class com.xiaosong.** { *; }</option>-->
-
-                    </options>
-                    <!--class 混淆后输出的jar包-->
-                    <outjar>classes-autotest.jar</outjar>
-                    <!-- 添加依赖，这里你可以按你的需要修改，这里测试只需要一个JRE的Runtime包就行了 -->
-                    <libs>
-                        <lib>${java.home}/lib/rt.jar</lib>
-                    </libs>
-                    <!-- 对什么东西进行加载，这里仅有classes成功，毕竟你也不可能对配置文件及JSP混淆吧-->
-                    <injar>classes</injar>
-                    <!-- 输出目录-->
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 

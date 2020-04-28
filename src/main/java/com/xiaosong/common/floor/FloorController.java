@@ -126,6 +126,8 @@ public class FloorController extends Controller {
      * 查询所有的大楼信息数据
      */
     public void index() {
+        String admin = getCookie("admin");
+        System.out.println(admin);
         try {
             TbBuilding floor = srv.findFloor();
             if (floor != null) {
@@ -142,6 +144,10 @@ public class FloorController extends Controller {
         }
     }
 
+    /**
+     * 拉取 服务器 数据 下发设备
+     * @throws Exception
+     */
     public void pullUser() throws Exception {
         int pageNum = 1;
         int pageSize = 20;

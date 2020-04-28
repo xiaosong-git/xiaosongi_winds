@@ -10,6 +10,7 @@ import com.xiaosong.constant.Constant;
 import com.xiaosong.constant.Constants;
 import com.xiaosong.util.RetUtil;
 import org.apache.log4j.BasicConfigurator;
+import org.eclipse.jetty.security.LoginService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -29,7 +30,6 @@ public class XiaoSongInterceptor implements Interceptor {
     }
 
     public void intercept(Invocation inv) {
-
 
         //inv.invoke();
         inv.getController().getResponse().addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS,DELETE,PUT");

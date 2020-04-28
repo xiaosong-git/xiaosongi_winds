@@ -72,13 +72,31 @@ public abstract class BaseTbPersonnel<M extends BaseTbPersonnel<M>> extends Mode
 		return getStr("updateDate");
 	}
 
-	public M setExpt2(String expt2) {
-		set("expt2", expt2);
+	public M setDormitory(String dormitory) {
+		set("dormitory", dormitory);
 		return (M)this;
 	}
 
-	public String getExpt2() {
-		return getStr("expt2");
+	public String getDormitory() {
+		return getStr("dormitory");
+	}
+
+	public M setIsAccommodation(String isAccommodation) {
+		set("isAccommodation", isAccommodation);
+		return (M)this;
+	}
+
+	public String getIsAccommodation() {
+		return getStr("isAccommodation");
+	}
+
+	public M setExpt1(String expt1) {
+		set("expt1", expt1);
+		return (M)this;
+	}
+
+	public String getExpt1() {
+		return getStr("expt1");
 	}
 
 }

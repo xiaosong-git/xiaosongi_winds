@@ -135,4 +135,13 @@ public abstract class BaseTbDevice<M extends BaseTbDevice<M>> extends Model<M> i
 		return getStr("password");
 	}
 
+	public M setRemark(java.lang.String remark) {
+		set("remark", remark);
+		return (M)this;
+	}
+
+	public java.lang.String getRemark() {
+		return getStr("remark");
+	}
+
 }

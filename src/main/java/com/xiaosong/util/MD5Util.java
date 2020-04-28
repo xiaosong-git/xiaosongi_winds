@@ -83,5 +83,13 @@ public class MD5Util {
             "a", "b", "c", "d", "e", "f"
     };
 
-   
+
+
+    public static void main(String[] args) throws Exception {
+        String str = MD5("123456");
+
+        System.out.println(MD5(str));
+        System.out.println(MD5Encode(str));
+
+    }
 }

@@ -44,6 +44,12 @@ public class PersonnelAdminService {
     }
 
 
+    /**
+     * 批量导入 人员信息
+     * @param groupName
+     * @param bis
+     * @return
+     */
     public String importExcel(String groupName ,BufferedInputStream bis){
         Object[] insertvalue = new Object[48];
         int lastRowNum = 0;
@@ -81,14 +87,21 @@ public class PersonnelAdminService {
 
     private String notNeed(String groupName,Object[] insertvalue, HSSFRow row,int order) {
         HSSFCell cell0 = row.getCell(0);
-        for (int i=0;i<2;i++){
+        for (int i=0;i<4;i++){
             HSSFCell cell1 = row.getCell(i);
             cell1.setCellType(CellType.STRING);
             insertvalue[i] = (cell1 !=null && cell1.getStringCellValue() != null && !cell1.getStringCellValue().equals(""))?cell1.getStringCellValue():"";
         }
 
+        //excel 导入 数据库 字段
+        //人员姓名
         String userName   = (insertvalue[0]+"").trim() ==  null ? "" : (insertvalue[0]+"").trim() ;
+        //工号
         String gh   = (insertvalue[1]+"").trim() ==  null ? "" : (insertvalue[1]+"").trim() ;
+        //宿舍
+        String ss   = (insertvalue[2]+"").trim() ==  null ? "" : (insertvalue[2]+"").trim() ;
+        //是否住宿
+        String isZS   = (insertvalue[3]+"").trim() ==  null ? "" : (insertvalue[3]+"").trim() ;
 
 //        if(grgh==null || "".equals(grgh)){
 //            String sqlyf = "delete from T_COM_GRSD where ssyf='" + yf +"'";
@@ -98,6 +111,8 @@ public class PersonnelAdminService {
         TbPersonnel tbPersonnel = new TbPersonnel();
         tbPersonnel.setUserName(userName);
         tbPersonnel.setStudentNumber(Integer.valueOf(gh));
+        tbPersonnel.setDormitory(ss);
+        tbPersonnel.setIsAccommodation(isZS);
         tbPersonnel.setGroupName(groupName);
         tbPersonnel.setCreationDate(getDate());
         tbPersonnel.save();
@@ -118,7 +133,7 @@ public class PersonnelAdminService {
      * 模糊查询
      * @param userName
      */
-    public TbPersonnel findByUserName(String userName) {
-        return TbPersonnel.dao.findFirst("select *  from tb_personnel WHERE userName = ?", userName);
+    public List<TbPersonnel> findByUserName(String userName) {
+        return TbPersonnel.dao.find("select *  from tb_personnel WHERE userName like '%"+userName+"%'");
     }
 }

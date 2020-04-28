@@ -14,22 +14,24 @@ import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
  * </pre>
  */
 public class _MappingKit {
-	
-	public static void mapping(ActiveRecordPlugin arp) {
-		arp.addMapping("tb_accessrecord", "id", TbAccessrecord.class);
-		arp.addMapping("tb_building", "orgCode", TbBuilding.class);
-		arp.addMapping("tb_companyuser", "companyUserId", TbCompanyuser.class);
-		// Composite Primary Key order: deviceId,deviceIp
-		arp.addMapping("tb_device", "deviceId,deviceIp", TbDevice.class);
-		arp.addMapping("tb_devicerelated", "relatedId", TbDevicerelated.class);
-		arp.addMapping("tb_failreceive", "faceIp", TbFailreceive.class);
-		arp.addMapping("tb_group", "id", TbGroup.class);
-		arp.addMapping("tb_personnel", "id", TbPersonnel.class);
-		arp.addMapping("tb_ptinfo", "deviceIP", TbPtinfo.class);
-		arp.addMapping("tb_serverinfo", "id", TbServerinfo.class);
-		arp.addMapping("tb_shareroom", "recordId", TbShareroom.class);
-		arp.addMapping("tb_statement", "id", TbStatement.class);
-		arp.addMapping("tb_visitor", "id", TbVisitor.class);
-	}
+
+    public static void mapping(ActiveRecordPlugin arp) {
+        arp.addMapping("tb_accessrecord", "id", TbAccessrecord.class);
+        arp.addMapping("tb_building", "orgCode", TbBuilding.class);
+        arp.addMapping("tb_companyuser", "companyUserId", TbCompanyuser.class);
+        // Composite Primary Key order: deviceId,deviceIp
+        arp.addMapping("tb_device", "deviceId,deviceIp", TbDevice.class);
+        arp.addMapping("tb_devicerelated", "relatedId", TbDevicerelated.class);
+        arp.addMapping("tb_failreceive", "faceIp", TbFailreceive.class);
+        arp.addMapping("tb_group", "id", TbGroup.class);
+        arp.addMapping("tb_personnel", "id", TbPersonnel.class);
+        arp.addMapping("tb_ptinfo", "deviceIP", TbPtinfo.class);
+        arp.addMapping("tb_serverinfo", "id", TbServerinfo.class);
+        arp.addMapping("tb_shareroom", "recordId", TbShareroom.class);
+        arp.addMapping("tb_visitor", "id", TbVisitor.class);
+        arp.addMapping("tb_temperature_record", TbTemperatureRecord.class);
+        arp.addMapping("tb_license", "id", TbLicense.class);
+        arp.addMapping("tb_recordbackups", TbRecordbackups.class);
+    }
 }
 

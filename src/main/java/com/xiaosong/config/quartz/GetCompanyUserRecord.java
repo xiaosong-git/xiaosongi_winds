@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 定时拉取员工数据
+ * 定时拉取员工数据 并下发
  */
 public class GetCompanyUserRecord implements Job {
     private FloorService srvFloor = FloorService.me;    //大楼业务层
@@ -111,7 +111,7 @@ public class GetCompanyUserRecord implements Job {
                         companyUser.setIsDel("1");
                         companyUser.setIsSued("1");
                         TbCompanyuser userfind = srvStaff.findByNameAndIdNO(companyUser.getUserName(),
-                                companyUser.getIdNO(), "在职");
+                                companyUser.getIdNO(), "normal");
                         if (userfind == null) {
                             notExitUser(companyUser);
                         } else {
@@ -131,7 +131,7 @@ public class GetCompanyUserRecord implements Job {
             logger.info("未出现下发错误的名单");
         } else {
             for (TbCompanyuser user : companyUsers) {
-                if (!user.getCurrentStatus().equals("在职")) {
+                if (!user.getCurrentStatus().equals("normal")) {
                     continue;
                 }
                 String issued = "0";
@@ -243,7 +243,7 @@ public class GetCompanyUserRecord implements Job {
                             if (null == deluser.getIdFrontImgUrl()) {
                                 isSuccess = true;
                             } else {
-                                isSuccess = sendAccessRecord.delIPCpicture("在职", deluser.getIdFrontImgUrl());
+                                isSuccess = sendAccessRecord.delIPCpicture("normal", deluser.getIdFrontImgUrl());
                             }
 
                         } else if (device.getDeviceType().equals("DH-ASI728")) {
@@ -296,7 +296,7 @@ public class GetCompanyUserRecord implements Job {
     private void notExitUser(TbCompanyuser companyUser) throws Exception {
 
         // 无状态员工不接收
-        if (!"在职".equals(companyUser.getCurrentStatus())) {
+        if (!"normal".equals(companyUser.getCurrentStatus())) {
             logger.info("员工" + companyUser.getUserName() + "的状态是" + companyUser.getCurrentStatus() + ",上位机不接收");
             return;
         }
@@ -403,7 +403,7 @@ public class GetCompanyUserRecord implements Job {
 
     private void doExitUser(TbCompanyuser companyUser, TbCompanyuser newUser) throws Exception {
 
-        if (newUser.getCurrentStatus().equals("在职")) {
+        if (newUser.getCurrentStatus().equals("normal")) {
             if (companyUser.getIsSued().equals("0")) {
                 return;
             } else {
@@ -416,7 +416,7 @@ public class GetCompanyUserRecord implements Job {
                     String issued = "0";
                     for (TbFailreceive faceReceive : faceReceiveList) {
                         TbCompanyuser user = srvStaff.findByNameAndIdNO(faceReceive.getUserName(),
-                                faceReceive.getIdCard(), "在职");
+                                faceReceive.getIdCard(), "normal");
 
                         String photo = isPhoto(user);
                         if (photo == null) {

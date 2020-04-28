@@ -32,16 +32,10 @@ public class PenetrateController extends Controller {
                 ser.setToKen(token);
                 boolean update = ser.update();
                 if (update) {
-                    String s= "nohup ./natapp -authtoken="+token+" -log=stdout &";
-                    System.out.println("===="+s);
-                    int i = Runtime.getRuntime().exec(s).waitFor();
-                    if (i == 1) {
-                        logger.error("内网穿透配置成功");
-                        renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "内网穿透配置成功"));
-                    } else {
-                        logger.error("内网穿透配置失败");
-                        renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "内网穿透配置失败"));
-                    }
+                    String natapp = "nohup /usr/natapp/natapp -authtoken=" + token + " -log=stdout &";
+                    logger.error("内网穿透配置成功");
+                    Runtime.getRuntime().exec(natapp);
+                    renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "内网穿透配置成功"));
                 } else {
                     logger.error("内网穿透配置失败");
                     renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "内网穿透配置失败"));

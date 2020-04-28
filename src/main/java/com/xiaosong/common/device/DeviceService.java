@@ -3,11 +3,10 @@ package com.xiaosong.common.device;
 
 import com.dhnetsdk.date.Constant;
 import com.jfinal.plugin.activerecord.Db;
-import com.sun.jna.Pointer;
 import com.xiaosong.config.MinniSDK;
 import com.xiaosong.config.MinniSDK.*;
 import com.xiaosong.model.*;
-import com.xiaosong.util.Control24DeviceUtil;
+import com.xiaosong.util.MD5Util;
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
@@ -207,119 +206,13 @@ public class DeviceService {
         accessRecord.save();
     }
 
-    /**
-     * 海景通行记录
-     *
-     * @param type     类型
-     * @param deviceIp 设备ip
-     * @param name     用户
-     * @param idCard   身份证号码
-     * @return
-     */
-    public boolean HJInfo(String type, String deviceIp, String name, String idCard) throws Exception {
-        TbDevice device = findByDeviceIp(deviceIp);
-        TbDevicerelated devRelated = TbDevicerelated.dao.findFirst("select * from tb_devicerelated where faceIP = ?", deviceIp);
-        if (null == device) {
-            return false;
-        }
-        if (type.equals("visitor")) {
-
-            if (devRelated.getTurnOver().equals("out")) {
-                String card = "v_" + name + "_" + idCard;
-//                if (redisUtils.get(key) == null) {
-//                    redisUtils.set("v_" + name + "_" + idCard, "locked");
-//                    redisUtils.expire(key, 4);
-//                    open(devRelated, name, idCard, type);
-//                    return RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "成功");
-//                } else {
-//                    return RetUtil.fail(ErrorCodeDef.CODE_ERROR, "已锁定");
-//                }
-                open(devRelated, name, idCard, type, card);
-            } else {
-                // 获取访客有无访问数据
-                List<TbVisitor> staffs = findByBetweenTime(name, idCard, getDateTime());
-                if (staffs.size() > 0) {
-                    String card = "v_" + name + "_" + idCard;
-//                    if (redisUtils.get(key) == null) {
-//                        redisUtils.set("v_" + name + "_" + idCard, "locked");
-//                        redisUtils.expire(key, 4);
-//                        open(devRelated, name, idCard, type);
-//                        return RetUtil.fail(ErrorCodeDef.CODE_NORMAL, "成功");
-//                    } else {
-//                        return RetUtil.fail(ErrorCodeDef.CODE_ERROR, "已锁定");
-//                    }
-                    open(devRelated, name, idCard, type, card);
-                } else {
-//                    logger.info("该访客访问时间过期，访问无效");
-                    return false;
-                }
-            }
-
-
-        } else {
-
-            String card = "S" + idCard;
-//            if (redisUtils.get(key) == null) {
-//                redisUtils.set("s_" + name + "_" + idCard, "locked");
-//                redisUtils.expire(key, 4);
-//            Control24DeviceUtil.controlDevice(devRelated.getRelayIP(), 8080, devRelated.getRelayOUT(), null);
-            open(devRelated, name, idCard, type, card);
-
-            return true;
-//            } else {
-//                return RetUtil.fail(ErrorCodeDef.CODE_ERROR, "已锁定");
-//            }
-        }
-
-        return false;
-    }
-
-    // 开门并记录通行
-    private void open(TbDevicerelated devRelated, String name, String idCard, String type, String cardNo) throws Exception {
-
-
-        Control24DeviceUtil.controlDevice(devRelated.getRelayIP(), 8080, devRelated.getRelayOUT(),
-                null);
-        saverecord(name, idCard, type, devRelated.getFaceIP(), devRelated.getRelayOUT(), cardNo);
-    }
-
-    /**
-     * 保存 通行记录
-     *
-     * @param name       通行人员名称
-     * @param idCard     通行人员身份证号码
-     * @param personType 通行人员类型
-     * @param faceIP     设备ip
-     * @param OUT        继电器输出口
-     */
-    public void saverecord(String name, String idCard, String personType, String faceIP, String OUT, String card) {
-        // TODO Auto-generated method stub
-        TbDevice device = findByDeviceIp(faceIP);
-        TbAccessrecord accessRecord = new TbAccessrecord();
-        accessRecord.setOrgCode(findOrgId());
-        accessRecord.setPospCode(findPospCode());
-        accessRecord.setInOrOut(device.getFqTurnover());
-
-        accessRecord.setScanDate(getDate());
-        accessRecord.setScanTime(getTime());
-        accessRecord.setOutNumber(OUT);
-        accessRecord.setDeviceType("FACE");
-        accessRecord.setDeviceIp(faceIP);
-        accessRecord.setUserType(personType);
-        accessRecord.setUserName(name);
-        accessRecord.setIdCard(idCard);
-        accessRecord.setCardNO(card);
-        accessRecord.setIsSendFlag("F");
-        saveAccessrecord(accessRecord);
-    }
-
-    private String getDate() {
+    public String getDate() {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");// 设置日期格式
         String date = df.format(new Date()); // new Date()为获取当前系统时间
         return date;
     }
 
-    private String getTime() {
+    public String getTime() {
         SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");// 设置日期格式
         String date = df.format(new Date()); // new Date()为获取当前系统时间
         return date;
@@ -330,7 +223,7 @@ public class DeviceService {
      *
      * @return
      */
-    private String getDateTime() {
+    public String getDateTime() {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
         String date = df.format(new Date()); // new Date()为获取当前系统时间
         return date;
@@ -455,23 +348,27 @@ public class DeviceService {
     /**
      * 旷世设备登录  and 开启接收人脸实时结果
      */
-    public void login(Map<String, String> map) {
+    public void login(Map<String, String> map) throws Exception {
+        byte[] deviceIp = map.get(Constant.deviceIp).getBytes();
+        int devicePort = Integer.parseInt(map.get(Constant.devicePort));
+        byte[] username = map.get(Constant.username).getBytes();
+        String password = map.get(Constant.password);
+        byte[] passWord = MD5Util.MD5(password).getBytes();
         MinniSDK minniSDK = MinniSDK.INSTANCE;
         //设备登录所需参数
         //登录句柄
         int handle = minniSDK.BoxSDK_INVALID_DEVICE_HANDLE;
-        BoxSDK_DeviceConfig deviceConfig = new BoxSDK_DeviceConfig();
+        BoxSDK_DeviceConfig.ByReference deviceConfig = new BoxSDK_DeviceConfig.ByReference();
         //设备登录 参数
-        deviceConfig.ip= map.get(Constant.deviceIp).getBytes();                //设备登录ip
-        deviceConfig.port = Integer.parseInt(map.get(Constant.devicePort));    //设备登录端口
-        deviceConfig.username =  map.get(Constant.username).getBytes();        //设备登录用户名
-        deviceConfig.password =  map.get(Constant.password).getBytes();        //设备登录密码
-        Pointer configPointer = deviceConfig.getPointer();
-        int isLogin = minniSDK.BoxSDK_login_device(configPointer, 5000, handle);
+        deviceConfig.ip= deviceIp;                //设备登录ip
+        deviceConfig.port = devicePort;           //设备登录端口
+        deviceConfig.username =  username;        //设备登录用户名
+        deviceConfig.password =  passWord;        //设备登录密码
+        int isLogin = minniSDK.BoxSDK_login_device(deviceConfig, 5000, handle);
         if (isLogin == 0) {
             logger.error("sync login device(" + map.get(Constant.deviceIp) + "," + Constant.devicePort + ") success, device handle:" + handle);
             //开启接收人脸实时结果
-            BoxSDK_FaceResultConfig config = new BoxSDK_FaceResultConfig();
+            BoxSDK_FaceResultConfig.ByReference config = new BoxSDK_FaceResultConfig.ByReference();
             config.enable = isLogin;                                 // 接收人脸结果
             config.enable_feature = isLogin;                         // 接收人脸的特征
             config.enable_capture_image = isLogin;                   // 接收人脸抓拍的抓拍图
@@ -483,10 +380,10 @@ public class DeviceService {
             config.enable_fever_original_image = isLogin;            // 接收人脸的发烧全景图
             config.enable_respirator_capture_image = isLogin;        // 接收人脸的无口罩抓拍图
             config.enable_respirator_original_image = isLogin;       // 接收人脸的无口罩全景图
-            Pointer pointer = config.getPointer();
-            int isSuccess = minniSDK.BoxSDK_set_face_result_config(handle, pointer, 5000);
+            int isSuccess = minniSDK.BoxSDK_set_face_result_config(handle, config, 5000);
             if(isSuccess==0){
-                logger.info("mock device ( "+handle+" ) set_face_result_config success");
+                logger.info("mock device (  "+handle+" ) set_face_result_config success");
+
             }else{
                 logger.error("mock device ( "+handle+" ) set_face_result_config failed, error code "+isSuccess);
                 //退出设备
@@ -495,8 +392,17 @@ public class DeviceService {
         } else {
             logger.error("sync login device ( " + map.get(Constant.deviceIp) + "," + Constant.devicePort + " ) failed, error code:" + isLogin);
             //销毁sdk
-            minniSDK.BoxSDK_release();
+            int i = minniSDK.BoxSDK_release();
+            if(i==0){
+                logger.error("sdk Has been destroyed");
+            }
         }
     }
 
+    /***
+     * 查询旷世 设备
+     */
+    public List<TbDevice> findKS() {
+        return TbDevice.dao.find("select * from tb_device where deviceType = 'KS-250'");
+    }
 }

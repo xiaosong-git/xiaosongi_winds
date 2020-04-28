@@ -56,6 +56,12 @@ public class XLSFileKit {
             }
             i++;
         }
+        //显示的 行数
+        row=sheet.createRow(content.size()+1);
+        //显示的 列
+        cell=row.createCell(8);
+        //显示 的 文字
+        cell.setCellValue("总记录条数: "+content.size());
     }
 
     /**

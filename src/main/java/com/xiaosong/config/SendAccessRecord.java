@@ -854,7 +854,7 @@ public class SendAccessRecord {
                 } catch (IOException e2) {
                     e2.printStackTrace();
                 }
-                // 图片以及门禁信息界面显示
+                // 通行记录显示
                 EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
                 if (eventQueue != null) {
                     // 时间

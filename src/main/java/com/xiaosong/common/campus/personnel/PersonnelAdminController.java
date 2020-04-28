@@ -4,7 +4,6 @@ import com.jfinal.core.Controller;
 import com.jfinal.kit.PathKit;
 import com.jfinal.upload.UploadFile;
 import com.xiaosong.constant.ErrorCodeDef;
-import com.xiaosong.model.TbCompanyuser;
 import com.xiaosong.model.TbGroup;
 import com.xiaosong.model.TbPersonnel;
 import com.xiaosong.util.RetUtil;
@@ -29,7 +28,7 @@ public class PersonnelAdminController extends Controller {
     public void dim() {
         try {
             String userName = getPara("userName");
-            TbPersonnel tbPersonnel = srv.findByUserName(userName);
+            List<TbPersonnel> tbPersonnel = srv.findByUserName(userName);
             if (userName == null) {
                 List<TbPersonnel> list = new ArrayList<>();
                 int page = Integer.parseInt(getPara("currentPage"));
@@ -48,8 +47,15 @@ public class PersonnelAdminController extends Controller {
                 }
             } else {
                 if (tbPersonnel != null) {
-                    logger.info(tbPersonnel);
-                    renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, tbPersonnel));
+                    List<TbPersonnel> list = new ArrayList<>();
+                    int page = Integer.parseInt(getPara("currentPage"));
+                    int number = Integer.parseInt(getPara("pageSize"));
+                    int index = (page - 1) * number;
+                    for (int i = index; i < tbPersonnel.size() && i < (index + number); i++) {
+                        list.add(tbPersonnel.get(i));
+                    }
+                    logger.info(list);
+                    renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, list));
                 } else {
                     logger.error("模糊查询人员失败~");
                     renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "模糊查询人员失败~"));
@@ -125,18 +131,18 @@ public class PersonnelAdminController extends Controller {
         try {
             String groupName = getPara("groupName");  //组别名称
             String userName = getPara("userName");   //人员姓名
+            String dormitory = getPara("dormitory");   //宿舍编号
             String studentNumber = getPara("studentNumber");  //人员学号
             TbPersonnel tbPersonnel = getModel(TbPersonnel.class);
             tbPersonnel.setGroupName(groupName);
             tbPersonnel.setUserName(userName);
+            tbPersonnel.setDormitory(dormitory);
             tbPersonnel.setStudentNumber(Integer.valueOf(studentNumber));
             tbPersonnel.setCreationDate(getDate());
             boolean save = tbPersonnel.save();
             if (save) {
                 logger.info("人员信息添加成功~");
                 renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "人员信息添加成功"));
-
-
             } else {
                 logger.error("人员信息添加失败~");
                 renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "人员信息添加失败"));
@@ -202,10 +208,12 @@ public class PersonnelAdminController extends Controller {
             String id = getPara("id");              //id
             String groupName = getPara("groupName");  //组别名称
             String userName = getPara("userName");   //人员姓名
+            String dormitory = getPara("dormitory");   //宿舍编号
             String studentNumber = getPara("studentNumber");  //人员学号
             TbPersonnel tbPersonnel = getModel(TbPersonnel.class);
             tbPersonnel.setId(Integer.valueOf(id));
             tbPersonnel.setUserName(userName);
+            tbPersonnel.setDormitory(dormitory);
             tbPersonnel.setGroupName(groupName);
             tbPersonnel.setStudentNumber(Integer.valueOf(studentNumber));
             tbPersonnel.setUpdateDate(getDate());

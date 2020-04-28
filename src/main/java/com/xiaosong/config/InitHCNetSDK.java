@@ -1,8 +1,5 @@
 package com.xiaosong.config;
 
-import com.jfinal.plugin.redis.Cache;
-import com.jfinal.plugin.redis.Redis;
-import com.xiaosong.common.device.DeviceService;
 import org.apache.log4j.Logger;
 
 public class InitHCNetSDK {
@@ -23,37 +20,6 @@ public class InitHCNetSDK {
         }else{
             logger.error("初始化失败");
         }
-       /* if (deviceType.contains("DS-K5671") || deviceType.contains("DS-2CD8627FWD")) {
-
-            systemload();
-            HCNetSDK hCNetSDK = HCNetSDK.INSTANCE;
-            //是海康设备就初始化海康SDK
-            while (!isInit && count < 5) {
-                isInit = hCNetSDK.NET_DVR_Init();
-                count++;
-            }
-            if (!isInit) {
-                redisUtils.set("isInit", "false");
-                logger.error("海康SDK初始化失败");
-            } else {
-                redisUtils.set("isInit", "true");
-                logger.info("海康SDK初始化成功");
-                //选型有海康门禁设备需要启动长连接做继电器开门
-                List<TbDevice> devices = devicesService.findByDevName("人脸设备", "使用");
-                //查找所有运行的海康设备做长连接
-                for (int i = 0; i < devices.size(); i++) {
-                    if (devices.get(i).getDeviceType().contains("DS-K5671") || devices.get(i).getDeviceType().contains("DS-2CD8627FWD")) {
-                        logger.info("长连接" + devices.get(i).getDeviceIp());
-                        hcNetSDKService.sendAccessRecord(devices.get(i).getDeviceIp(), "admin", "wgmhao123");
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }*/
     }
 
     /**

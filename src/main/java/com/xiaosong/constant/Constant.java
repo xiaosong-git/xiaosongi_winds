@@ -13,9 +13,9 @@ public class Constant {
     /**
      * 默认上传临时文件夹 PathKit.getWebRootPath() +"/upload/temp";
      */
-    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/src/main/webapp/file";
+//    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/src/main/webapp/file";
     //linux 路徑
-//    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/file/";
+    public static final String BASE_UPLOAD_PATH = PathKit.getWebRootPath() + "/file/";
 
 
     /**
@@ -36,6 +36,6 @@ public class Constant {
     /**
      * 是否开发模式-生产是自动加载改为false即可，自动加载生产配置文件
      */
-    public final static Boolean DEV_MODE = true;
+    public final static Boolean DEV_MODE = false;
 
 }

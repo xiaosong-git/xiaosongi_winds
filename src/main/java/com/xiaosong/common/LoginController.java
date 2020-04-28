@@ -1,12 +1,15 @@
 package com.xiaosong.common;
 
 import com.jfinal.aop.Before;
+import com.jfinal.aop.Clear;
 import com.jfinal.core.Controller;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.ehcache.CacheKit;
 import com.xiaosong.constant.Constant;
 import com.xiaosong.constant.Constants;
 import com.xiaosong.constant.ErrorCodeDef;
+import com.xiaosong.interceptor.XiaoSongInterceptor;
+import com.xiaosong.model.TbTemperatureRecord;
 import com.xiaosong.util.RetUtil;
 import org.apache.log4j.Logger;
 
@@ -33,6 +36,8 @@ public class LoginController extends Controller {
             logger.error("密码不正确");
             renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "密码不正确"));
         }else{
+            System.out.println("!!!!");
+            CacheKit.put(Constant.SYS_ACCOUNT, userName,password);
             Constants.login=getSession().getId();
             System.out.println("login:"+Constants.login);
             CacheKit.put("LoginUserCache", Constants.login, list); // 将用户信息保存到缓存，用作超时判断
@@ -45,4 +50,13 @@ public class LoginController extends Controller {
 
     }
 
+    public void aVoid(){
+        List<TbTemperatureRecord> blogList = CacheKit.get("SYS_ACCOUNT", "blogList");
+        if (blogList == null) {
+            blogList = TbTemperatureRecord.dao.find("select * from tb_temperature_record");
+            CacheKit.put("SYS_ACCOUNT", "blogList", blogList);
+        }
+        setAttr("blogList", blogList);
+        render("blog.html");
+    }
 }

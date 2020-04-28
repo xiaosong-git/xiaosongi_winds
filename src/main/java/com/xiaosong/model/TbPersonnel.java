@@ -8,4 +8,5 @@ import com.xiaosong.model.base.BaseTbPersonnel;
 @SuppressWarnings("serial")
 public class TbPersonnel extends BaseTbPersonnel<TbPersonnel> {
 	public static final TbPersonnel dao = new TbPersonnel().dao();
+
 }

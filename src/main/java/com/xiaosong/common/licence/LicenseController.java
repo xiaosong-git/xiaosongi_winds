@@ -1,18 +1,29 @@
 package com.xiaosong.common.licence;
 
+import com.jfinal.aop.Before;
+import com.jfinal.aop.Clear;
 import com.jfinal.core.Controller;
 import com.jfinal.kit.PathKit;
+import com.jfinal.plugin.activerecord.Model;
+import com.jfinal.plugin.redis.Cache;
+import com.jfinal.plugin.redis.Redis;
 import com.xiaosong.constant.ErrorCodeDef;
+import com.xiaosong.interceptor.LicenseInterceptor;
+import com.xiaosong.interceptor.XiaoSongInterceptor;
+import com.xiaosong.model.TbLicense;
 import com.xiaosong.util.Misc;
 import com.xiaosong.util.RetUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
+import org.junit.Test;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -25,13 +36,19 @@ import java.util.Date;
 /**
  * licence 管理
  */
+
+@Clear
+@Before(LicenseInterceptor.class)
 public class LicenseController extends Controller {
+    private static LicenseService srv = LicenseService.me;
 
-    private static String resriviceKey = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDznJEH7XnzxUclxsLctGEqQN+OxAenKCdtelt6bw0/2BpZL+27eSixFyU+z6nqDiD+yoaUtdtDYZYuE4WbokrZy9dvev+OsDk6eL12VKhIPUtVgXpFK0ypcSrQZol6FOyQrXBZlygHUTcyS0ummGYkDEGbPmOogEZBwBhV3qpw9CqtqlDh/JkzTTUMV3qQaviviCUnvMWae2EKn4JTk0/C/JJdQrtu8MzTVubd6JNeP3DMCvQPDzlaM8AG126/DhIEnAqh9lwrGCQ4hVtT7m/bAajGJMflY7bQ8a9JCFqfnXwS3r7W1Lc+6SaPHJFIaFOfJiGemrTZ5gxgGBgUr4a9AgMBAAECggEAIY/vdz0jcQ871xuEGy4KuOyJID0npMLmc7HIypxkIeie8Kymvw5ZKdS7f+TSTvm1WAUE95X6aFUYgK6V2LRKRalMvAIhFUJ4D/M0fwn4yUMQju4wrzjg7fM2Z9HInPYnBWOvt9gYXrG0vgwblw8l+09o9n9o8X0CsOpLMAFmT/s+2VyS+9d4Uelqi7736JAGvE/johR/1y9KOI4n0Nf/HK9kNPW0uus70RfIhKdNu1oFb147fDm2Q6tJu0fmFq176o2h7L5aFKo+FFj1vIdxGElQ+nB59qYjbLrjzsUaoAwIaQxtBVKuIEmvPGrm/FYZjMtbOda/dzOw9SIUTrQ4QQKBgQD8ZEa5OZzagFuLoWS0b7YjFIfA0PjNWTOgiE4NrFofGwz4GdZ/cDbcUxSaPbSGOfkUUkLsoieZf/UGzPulBEXvI92SnuU4D0z8RnHkKjQ9uFUoRljo2X9z+wAXNNJZpigbUcEwQYjSdW0+ndkYW5gmJO8dU4Tay7sAs+woOTIwjQKBgQD3GCf0wehCq/oDUh/zQDVg+sn0oO70jLlhMLxWFq9IK3OeHAO0kB85YzVaXVoP2FLtfZ5TZhDrxXJQlkWQGYzGwfciECiCTAqW0Vr/eIP3kNBccOXqlSVi0lzA44C7OLlTy3DMtkBQGriRGBM0OADOcNxtl1PZ8X+szt/wLOea8QKBgGS77RJOcVEwO9l+AACYOZzEu+30OelTuexPmr+QU6PomwOG5HqWof7L1gQ9roiIKOa4cmeZzK5SSMx/Eczp6LOqn+u+KYR3buWdhCVpxtH/eVWKxj+hV2JGAuJAPdh0HbvRpIaLEX3WSlTckWJMZGyM/za4N+VPvQJpzU68jVCdAoGBAMfNrrGKAse2zMnWpKNMLl2nLZs0b0UsbdKbWA+89CvFhw441P4y9Cyxfjj994+MezIzO81wYQpldJSZjtKA9obZ3X6b1kXWO1HNJGokB4IuhW3alO/lfn+0XvBShovdyG5ruWCvlr2vfcNF1nGJP42vUW8EyPcZAwa3mflaNkXhAoGAHPqDSN8UOIiXyCLwVSZW9RLZ7VFJNroMci8yTL7G+p7GJsR6Opqnd+MQHCXL/XCZlenVcBryKdwywlyvbuKKBM2cC8Y2Djg4l2L2x+ueLCQe5oAhUjSv8g+PXWY8Z20eKHYh5y8X5JD1ys7sVV7BoQde005wTMRZNyduZJEMe3U=";
+    private static String resriviceKey = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCCxQUVuE0dK/PFgnMfE3ebceyqT7HKR07uoW1eH9wVvqIkQ54DrSIxZwZmnxK6JmPdvkRa1hiZYimteBnJTv7Fejiuy+eeredZum60PSPpl0IFn5KuzI64Pyh7h81FyT8/9a/HUG0Kl5S+iZPK/FS8kqno4fHBR9CV4wOeZEvpASB7O49g2SbHgz0r3QNFNYjEcHJKZVF2AUINqSCZORCR1c2tZ94ZfKd+640cC/cVnfiqNgnr6Veg6R3R9tDm2nxjgDQtkRlAwHZTtOhfvd5aUGST6A6mOqEFDpePwbLgcdKAfcD3PyCWVX9/kQFa7sshqCWLztB/CPdTQJmCDDuDAgMBAAECggEAFd59CzTXMJm5Gr7GIdxPlF9pBNJvGTTzrlSwxZzuYXSQCSCFvHen0Ds6hs7zgs4IxXycUdScKIqSDcCYD2J2mO/nqtPO2Gqc1hSnjtzqtJXnJKmbDkCHXaiyTHZZjeIqAbhEvUBl++99oJ/BZ6DrSt38LEYc+AXajDZ61HJRf5XB6SRF/ihT8oLgVbTciWaNo8e4pnR576v/SUHlpJvU6FD2gC8ZJzTzfG9xjfPH/M3a4c53EhbouNVam4CwDQ+eVPUyu6KHL6g9yd5uTUqaU4OUNr0y/UUoyAGXo8LFw4sO6kEURoR2C2+HxKzHl5Dxr65VSK3SyaaT3eEcEIhxAQKBgQDlEDCPX6xe7t1lzkYnOcWIJM7sxm+7qLQIdRiI6PdcjR0jKlUYiC3QiezOq/13icJwdhT3YEuXzrl9KhRQP0p26MynNyIPdzf5cburbQs8TjuRVET/b/+a/5owNys+7Es3cQLPjnpZoc0ua4HUfp1KUmhJVXIkiYFdoalyQglcKwKBgQCSJcKEno0m5HKTJciDI6hFJawRtDyVVNMKwgU4PL3uOOfIYg4RqOWS6DhYGTp1cS/QVwpxFZEp9tsV/BUPGG89zfWFGFHSbN0CQJ0ciLnt9PWgLmmnEoldKjYAEtUEECkqEnhcfX45URXh/Ajovdjyx8ZIzUX7A4Msdm0QaiL6CQKBgFNWxJQlVu1jMqHrnpJ+7mNOIQr8V4KLKpU5JSgKupStssAskrFOOnz48XNwF9P6Bwgrrg0it94PlGT5flKD9G+2216rLHU8Bt12h7UjA0d5nyqM4l2dPf4CqPKJ3+4Qwnz1XPRu/gzGVYRiEOZi+o8j1FV6BQFOFgce3it34zfpAoGAIGkrWEnpN8TV+/gXHa4ctSkDnfGAtgVXwD0C91PRMzF/hZrpT9VLBGdnh3Ig2sa9OdDzydxkkw/hymBbMzvR/7zbRCb+jlICOWum7BsOUM1QY7OnTpv3xqeDzkRe5UXIO0JZWvmhsohe9/zy5NqlcEIJoT+U03QV9RhWW5uOIjECgYEAxqPQzCtsjJUlTHjTYPU7CzatXke3iNhKZK9hvRb5Mi6yaW7Dt2himNT4V+lpfkyITWW/eMcmoutNw4jKAI5QiHFOk6WZM3TCi402yB1Ik7LZoz5Hg8nHzuZZ5L9WAzUTPhRrmiUweejl1BpozTftZANhSOXBtZPz87kocBtvmy0=";
 
-    private static String license = "wb239LpUbOpM+hCTy/CdiQH85NJsOOkW4XPUi7gnEtc64c09MpetlJIYpB41lnTnhX4jsev/MjBc92GyUrbJzoaAxpkJ7CiYS07fPN+NSWJEjQzYLRj8+rgKc5P8ZDt+saBZpf60TNtEYxogg3PdSnIqcBG6iskOzWbzeoEZ/X9EWsESOCip1aalJIJwwGMfng+TSBaJrYrFDkXXhJ67fKab03fZjBKxmdF3o4dkwzI8+s3RZsETAWm0O9vjhtz11aJ1qcSYQfGegnpwkj02C16eriwKVefVq8cMH+9dPsz1YieOMC+Wxh05wth9FxQzfDel58pFgSk3OO4u1v28Cg==";
+    private static String license = "WwDMto8H8p3oOwAPeyqybKpsommaufqd3cls31bGnE37bbnQDNb33iWrhhwY40CLWV7T8V4dfo1j+maxOiRURKddPOLYGrWyIQhhSgMfs/pmATG6JCGHVvLbXKzLNAyA31hT7IQZsDrrz9NZP5xt68nwjE1bNQF1S/iuCWV5sKg2a4M9UV3Ie9EdReRSefLi1YQyob3BepyqBj6MK/DE0qoszQ2/p2DZHQ16C3GH8u71SjbzeQWMSbO7VBDao+DosoO70hTOCR/niSJSqL7UxxEUXIYRQ1XkmY+PZ+M0jIea/z9K5HR2lZxoEKTM2Qwr+nLjRmJNpO92YzAnhh9cxg==";
 
     private static Logger logger = Logger.getLogger(LicenseController.class);
+
+    private static Cache cache = Redis.use("xiaosong");
 
     /**
      * 对前端传入的参数 进行校验,
@@ -40,54 +57,79 @@ public class LicenseController extends Controller {
      */
     public void index() throws Exception {
 
-        //读取文件
-        String lic = fileRead();
-        String[] split = lic.split("\\|");
-        String license = null; //license
-        license = split[1];
+        try {
+            //前端 传入参数
+            String code = getPara("license");
+            String privateKey = getPara("key");
+            byte[] res = decrypt(loadPrivateKeyByStr(privateKey), Base64.decodeBase64(code));
+            String str = new String(res);
+            String[] str1 = str.split("\\|");
+            //上位机编码
+            String SwjCode = str1[0];
+            //mac地址
+            String mac = str1[1];
+            //结束时间
+            String beginDateDate = str1[2];
+            //开始时间时间
+            String endDate = str1[3];
+            TbLicense tbLicense1 = srv.findMac(mac);
 
-        //前端 传入参数
-        String code = getPara("license");
-        String privateKey = getPara("key");
-        byte[] res = decrypt(loadPrivateKeyByStr(privateKey), Base64.decodeBase64(code));
-        String str = new String(res);
-        String[] str1 = str.split("\\|");
-        System.out.println(str);
-        System.out.println(Misc.compareDate2(str1[3],getDate()));
-        System.out.println(license);
-        System.out.println(str1[3]);
-        if (license.equals(str1[1]) && Misc.compareDate2(str1[3],getDate())) {
-            //linux 路径
-//            OutputStream out = new FileOutputStream(PathKit.getWebRootPath()+"/WEB-INF/classes/license.txt");
-            //winds 路径
-            OutputStream out = new FileOutputStream("license.txt");
-            String s = str+"|T";
-            InputStream is = new ByteArrayInputStream(s.getBytes());
-            byte[] buff = new byte[1024];
-            int len = 0;
-            while ((len = is.read(buff)) != -1) {
-                out.write(buff, 0, len);
+            //判断 数据库 中是否 有数据 没有就存
+            if (tbLicense1 == null) {
+                TbLicense tbLicense = getModel(TbLicense.class);
+                tbLicense.setMac(mac);
+                tbLicense.setSWJCode(SwjCode);
+                tbLicense.setBeginDate(beginDateDate);
+                tbLicense.setEndDate(endDate);
+                boolean save = tbLicense.save();
+                if (save) {
+                    logger.info("license 保存成功~");
+                    //存入缓存
+                    cache.set("SwjCode", SwjCode);
+                    cache.set("mac", mac);
+                    cache.set("beginDateDate", beginDateDate);
+                    cache.set("endDate", endDate);
+                    logger.info("license 已存入缓存~");
+                    renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "license已存入缓存~"));
+                }
+            } else {
+                String cacheMac = cache.get("mac");
+                String cacheEndDate = cache.get("endDate");
+                //从缓存中获取mac 并效验
+                if (cacheMac == null || cacheEndDate == null) {
+                    renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "缓存中的mac或时间不存在~"));
+                } else {
+                    if (cacheMac.equals(mac) && Misc.compareDate2(cacheEndDate, getDate())) {
+                        renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "license匹对成功~"));
+                    } else {
+                        //缓存中 mac 不匹配 就从 数据库中获取
+                        if (mac.equals(tbLicense1.getMac()) && Misc.compareDate2(tbLicense1.getEndDate(), getDate())) {
+                            renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL, "license匹对成功~"));
+                        } else {
+                            logger.error("mac不存在或时间已过期~");
+                            renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR, "mac不存在或时间已过期~"));
+                        }
+
+                    }
+                }
             }
-            is.close();
-            out.close();
-            renderJson(RetUtil.ok());
-
-        } else {
-            renderJson(RetUtil.fail());
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("license异常错误~");
         }
-
     }
 
     /**
      * 读取  license  文件并切割长度
      */
+
     public void cache() {
         try {
             String lic = fileRead();
             String[] split = lic.split("\\|");
-            if(split.length>=5){
+            if (split.length >= 5) {
                 renderJson(RetUtil.ok(ErrorCodeDef.CODE_NORMAL));
-            }else{
+            } else {
                 renderJson(RetUtil.fail(ErrorCodeDef.CODE_ERROR));
             }
         } catch (Exception e) {
@@ -161,10 +203,10 @@ public class LicenseController extends Controller {
 
     public static String fileRead() throws Exception {
         //linux 路径
-//        File file = new File(PathKit.getWebRootPath()+"/WEB-INF/classes/license.txt");//定义一个file对象，用来初始化FileReader
+//        File file = new File(PathKit.getWebRootPath() + "/WEB-INF/classes/license.txt");//定义一个file对象，用来初始化FileReader
         //winds 路劲
         File file = new File("license.txt");//定义一个file对象，用来初始化FileReader
-        logger.info("license的路劲:"+"license.txt");
+        logger.info("license的路劲:" + "license.txt");
         FileReader reader = new FileReader(file);//定义一个fileReader对象，用来初始化BufferedReader
         BufferedReader bReader = new BufferedReader(reader);//new一个BufferedReader对象，将文件内容读取到缓存
         StringBuilder sb = new StringBuilder();//定义一个字符串缓存，将字符串存放缓存中
@@ -188,8 +230,42 @@ public class LicenseController extends Controller {
         return date;
     }
 
-    public static void main(String[] args) throws Exception {
-        LicenseController l= new LicenseController();
+    /**
+     * 获取 本地mac地址
+     *
+     * @return
+     * @throws Exception
+     */
+    private static String getLocalMac() throws Exception {
+        // TODO Auto-generated method stub
+        //得到IP
+        InetAddress ia = InetAddress.getLocalHost();
+        //获取网卡，获取地址
+        byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
+        System.out.println("mac数组长度：" + mac.length);
+        StringBuffer sb = new StringBuffer("");
+        for (int i = 0; i < mac.length; i++) {
+            if (i != 0) {
+                sb.append("-");
+            }
+            //字节转换为整数
+            int temp = mac[i] & 0xff;
+            String str = Integer.toHexString(temp);
+            System.out.println("每8位:" + str);
+            if (str.length() == 1) {
+                sb.append("0" + str);
+            } else {
+                sb.append(str);
+            }
+        }
+        logger.info("本机MAC地址:" + sb.toString().toUpperCase());
+        return sb.toString().toUpperCase();
+    }
+
+    //    //测试解密 结果
+    @Test
+    public void test() throws Exception {
+        LicenseController l = new LicenseController();
         byte[] decrypt = l.decrypt(loadPrivateKeyByStr(resriviceKey), Base64.decodeBase64(license));
         String str = new String(decrypt);
         System.out.println(str);
